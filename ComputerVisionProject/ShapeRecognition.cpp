@@ -17,7 +17,7 @@ void ShapeRecognition::renderRectangles(const Mat input, Mat dst)
 
 	cv::findContours(input.clone(), contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
 
-	float imageArea = input.rows * input.cols;
+	float imageArea = static_cast<float>(input.rows * input.cols);
 
 	for (int i = 0; i < contours.size(); i++)
 	{
@@ -37,7 +37,7 @@ void ShapeRecognition::renderRectangles(const Mat input, Mat dst)
 			//Helpers::DrawRectanglePointsTo(drawing, rotatedRect, CHANNEL_GREEN_IDX);
 
 			float rectArea = rotatedRect.size.width * rotatedRect.size.height;
-			float rectAreaPct = rectArea / imageArea * 100.0;
+			float rectAreaPct = rectArea / imageArea * 100.0f;
 
 			if (rectAreaPct < 0.4f || rectAreaPct > 5.0f)
 				continue;
@@ -46,7 +46,7 @@ void ShapeRecognition::renderRectangles(const Mat input, Mat dst)
 
 			//Helpers::DrawPointsTo(drawing, approxPolyPoints, CHANNEL_RED_IDX);
 
-			int angle = (int)Util::Angles::CalculateRectangleAngle(rotatedRect);
+			int angle = Util::Angles::CalculateRectangleAngle(rotatedRect);
 			string stringAngle = to_string(angle);
 
 			string shapeName;

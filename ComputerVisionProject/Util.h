@@ -9,7 +9,7 @@ namespace Util
 	class Angles
 	{
 	public:
-		static float CalculateRectangleAngle(RotatedRect rectangle);
+		static int CalculateRectangleAngle(RotatedRect rectangle);
 	};
 }
 
