@@ -173,7 +173,7 @@
     <ClInclude Include="MatDrawer.h" />
     <ClInclude Include="MatTransformer.h" />
     <ClInclude Include="OpenCVHeaders.h" />
-    <ClInclude Include="ShapeRecognition.h" />
+    <ClInclude Include="ActivityRecognition.h" />
     <ClInclude Include="Util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,5 +1,5 @@
 #include "Util.h"
-#include "ShapeRecognition.h"
+#include "ActivityRecognition.h"
 #include "Enums.h"
 #include "MatTransformer.h"
 #include "MatDrawer.h"
@@ -8,10 +8,10 @@
 
 using namespace std;
 
-void ShapeRecognition::renderRectangles(const Mat input, Mat dst)
+void ActivityRecognition::RenderActionAndDecisionElements(const Mat input, Mat dst, std::vector<std::vector<cv::Point>>& actionContours, std::vector<std::vector<cv::Point>>& decisionContours)
 {
 	// Contour structures
-	vector<vector<cv::Point> > contours;
+	vector<vector<cv::Point>> contours;
 	vector<Vec4i> hierarchy;
 	vector<cv::Point> approxPolyPoints;
 
@@ -52,9 +52,15 @@ void ShapeRecognition::renderRectangles(const Mat input, Mat dst)
 			string shapeName;
 
 			if (angle < 10 || angle > 170)
+			{
+				actionContours.push_back(contours[i]);
 				shapeName = "ACTION";
+			}
 			else
+			{
+				decisionContours.push_back(contours[i]);
 				shapeName = "DECISION";
+			}
 
 			MatDrawer md;
 			md.DrawLabelToContour(dst, shapeName, contours[i]);
@@ -65,7 +71,7 @@ void ShapeRecognition::renderRectangles(const Mat input, Mat dst)
 	}
 }
 
-void ShapeRecognition::renderFinalCircle(const Mat input, Mat dst)
+void ActivityRecognition::RenderFinalNodes(const Mat input, Mat dst, std::vector<std::vector<cv::Point>>& finalNodeContours)
 {
 	vector<Vec3f> circles;
 
@@ -74,17 +80,33 @@ void ShapeRecognition::renderFinalCircle(const Mat input, Mat dst)
 					   // (min_radius & max_radius) to detect larger circles
 	);
 
+	// Create empty mat for contour detection
+	Mat emptyMat = Mat::zeros(input.size(), CV_8UC1);
+
 	for (size_t i = 0; i < circles.size(); i++)
 	{
 		Vec3i c = circles[i];
+
 		circle(dst, Point(c[0], c[1]), c[2], Util::Colors::Green, 3, LINE_AA);
 		circle(dst, Point(c[0], c[1]), 2, Util::Colors::Green, 3, LINE_AA);
 
-		cv::putText(dst, "Final node", Point(c[0], c[1]), cv::FONT_HERSHEY_SIMPLEX, 0.4, CV_RGB(255, 255, 255), 2, 8);
+		// draw to contour mat
+		circle(emptyMat, Point(c[0], c[1]), c[2], Util::Colors::White, 3, LINE_AA);
+
+		cv::putText(dst, "Final node", Point(c[0], c[1]), cv::FONT_HERSHEY_SIMPLEX, 0.4, Util::Colors::White, 2, 8);
+	}
+
+	// Extract contours of circles
+	vector<vector<cv::Point>> contours;
+	cv::findContours(input.clone(), contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+
+	for (int i = 0; i < contours.size(); i++)
+	{
+		finalNodeContours.push_back(contours[i]);
 	}
 }
 
-void ShapeRecognition::renderStartingCircle(const Mat input, Mat dst)
+void ActivityRecognition::RenderInitialNode(const Mat input, Mat dst, std::vector<cv::Point>& initialNodeContour)
 {
 	// Contour structures
 	vector<vector<cv::Point>> contours;
@@ -110,11 +132,14 @@ void ShapeRecognition::renderStartingCircle(const Mat input, Mat dst)
 			circle(dst, pt, 10, Util::Colors::Green, 2);
 			MatDrawer md;
 			md.DrawLabelToContour(dst, "Initial node", contours[i]);
+
+			initialNodeContour = contours[i];
+			break;
 		}
 	}
 }
 
-Mat ShapeRecognition::transformToConnectingLinesMat(const Mat inputDrawingMat, const Mat inputDillatedMat)
+Mat ActivityRecognition::RenderConnectingLines(const Mat inputDrawingMat, const Mat inputDillatedMat, std::vector<std::vector<cv::Point>>& lineContours)
 {
 	Mat drawingMat = inputDrawingMat.clone();
 	Mat dillMat = inputDillatedMat.clone();
@@ -169,6 +194,8 @@ Mat ShapeRecognition::transformToConnectingLinesMat(const Mat inputDrawingMat, c
 
 		cv::approxPolyDP(cv::Mat(contours[i]), approxPolyPoints, arcLength, false);
 		drawContours(connectingLinesMat, contours, i, Util::Colors::White, CV_FILLED, LINE_8, hierarchy, 0);
+
+		lineContours.push_back(contours[i]);
 	}
 
 	return connectingLinesMat;

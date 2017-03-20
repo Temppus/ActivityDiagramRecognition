@@ -1,12 +1,15 @@
 #include "OpenCVHeaders.h"
 #include "Enums.h"
-#include "ShapeRecognition.h"
+#include "ActivityRecognition.h"
 #include "MatTransformer.h"
 
 #include <map>
 #include <set>
 #include <iostream>
 
+typedef std::vector<std::vector<cv::Point>> Contours;
+typedef std::vector<cv::Point> Contour;
+ 
 using namespace cv;
 using namespace std;
 
@@ -17,35 +20,42 @@ int main(int, char** argv)
 	if (srcMat.empty())
 		return -1;
 
-	MatTransformer mt;
+	MatTransformer matTransformer;
 
-	Mat grayMat = mt.ToGray(srcMat, true);
-	//imshow("gray", grayMat);
+	Mat grayMat = matTransformer.ToGray(srcMat, true);
+	imshow("gray", grayMat);
 
-	Mat edgesMat = mt.ToEdges(grayMat);
-	//imshow("canny edge", edgesMat);
+	Mat edgesMat = matTransformer.ToEdges(grayMat);
+	imshow("canny edge", edgesMat);
 
-	Mat linesMat = mt.ToGray(mt.ToHoughLinesP(edgesMat, 10, 30, 20), true);
+	Mat linesMat = matTransformer.ToGray(matTransformer.ToHoughLinesP(edgesMat, 10, 30, 20), true);
 	imshow("hough lines", linesMat);
 
 	// Create empty color image for drawing
 	Mat drawingMat = Mat::zeros(srcMat.size(), CV_8UC3);
 
-	Mat dillMat = mt.FillGaps(edgesMat);
+	Mat dillMat = matTransformer.FillGaps(edgesMat);
 
 	imshow("dillatated", dillMat);
 
-	ShapeRecognition::renderStartingCircle(dillMat, drawingMat);
-	ShapeRecognition::renderRectangles(linesMat, drawingMat);
-	ShapeRecognition::renderFinalCircle(grayMat, drawingMat);
+	ActivityRecognition shapeRecognition;
 
+	Contour initialNodeContour;
+	shapeRecognition.RenderInitialNode(dillMat, drawingMat, initialNodeContour);
 
-	Mat binaryConnectingLinesMat = ShapeRecognition::transformToConnectingLinesMat(drawingMat, dillMat);
+	Contours actionContours;
+	Contours decisionContours;
+	shapeRecognition.RenderActionAndDecisionElements(linesMat, drawingMat, actionContours, decisionContours);
 
+	Contours finalNodeContours;
+	shapeRecognition.RenderFinalNodes(grayMat, drawingMat, finalNodeContours);
 
+	Contours lineContours;
+	Mat binaryConnectingLinesMat = shapeRecognition.RenderConnectingLines(drawingMat, dillMat, lineContours);
+
+	imshow("drawing", drawingMat);
 
 	imshow("Connecting lines", binaryConnectingLinesMat);
-
 
 	waitKey(0);
 	return EXIT_SUCCESS;

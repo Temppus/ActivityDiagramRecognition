@@ -38,9 +38,6 @@
     <ClInclude Include="OpenCVHeaders.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ShapeRecognition.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MatTransformer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -48,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MatDrawer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ActivityRecognition.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
