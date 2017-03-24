@@ -169,7 +169,12 @@
     <ClCompile Include="ShapeRecognition.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AcitivityElement.h" />
+    <ClInclude Include="ActionElement.h" />
+    <ClInclude Include="DecisionElement.h" />
     <ClInclude Include="Enums.h" />
+    <ClInclude Include="FinalNodeElement.h" />
+    <ClInclude Include="InitialNodelement.h" />
     <ClInclude Include="MatDrawer.h" />
     <ClInclude Include="MatTransformer.h" />
     <ClInclude Include="OpenCVHeaders.h" />

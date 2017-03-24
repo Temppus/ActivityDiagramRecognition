@@ -3,15 +3,17 @@
 #include "ActivityRecognition.h"
 #include "MatTransformer.h"
 
+#include "..\ComputerVisionProject\AcitivityElement.h"
+
 #include <map>
 #include <set>
 #include <iostream>
 
-typedef std::vector<std::vector<cv::Point>> Contours;
-typedef std::vector<cv::Point> Contour;
+
  
 using namespace cv;
 using namespace std;
+using namespace activity;
 
 int main(int, char** argv)
 {
@@ -26,17 +28,17 @@ int main(int, char** argv)
 	imshow("gray", grayMat);
 
 	Mat edgesMat = matTransformer.ToEdges(grayMat);
-	imshow("canny edge", edgesMat);
+	//imshow("canny edge", edgesMat);
 
 	Mat linesMat = matTransformer.ToGray(matTransformer.ToHoughLinesP(edgesMat, 10, 30, 20), true);
-	imshow("hough lines", linesMat);
+	//imshow("hough lines", linesMat);
 
 	// Create empty color image for drawing
 	Mat drawingMat = Mat::zeros(srcMat.size(), CV_8UC3);
 
 	Mat dillMat = matTransformer.FillGaps(edgesMat);
 
-	imshow("dillatated", dillMat);
+	//imshow("dillatated", dillMat);
 
 	ActivityRecognition shapeRecognition;
 
@@ -47,13 +49,15 @@ int main(int, char** argv)
 	Contours decisionContours;
 	shapeRecognition.RenderActionAndDecisionElements(linesMat, drawingMat, actionContours, decisionContours);
 
+	//intersectConvexConvex
+
 	Contours finalNodeContours;
 	shapeRecognition.RenderFinalNodes(grayMat, drawingMat, finalNodeContours);
 
 	Contours lineContours;
 	Mat binaryConnectingLinesMat = shapeRecognition.RenderConnectingLines(drawingMat, dillMat, lineContours);
 
-	imshow("drawing", drawingMat);
+	//imshow("drawing", drawingMat);
 
 	imshow("Connecting lines", binaryConnectingLinesMat);
 

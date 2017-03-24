@@ -156,14 +156,22 @@ Mat ActivityRecognition::RenderConnectingLines(const Mat inputDrawingMat, const 
 	Mat andMat;
 	bitwise_and(binaryDrawing, dillMat, andMat);
 
+	//imshow("AND 1", andMat);
+
 	Mat andNot;
 	bitwise_not(andMat, andNot);
+
+	//imshow("AND NOT", andNot);
 
 	Mat finalMat;
 	bitwise_and(andNot, dillMat, finalMat);
 
+	//imshow("AND 2", finalMat);
+
 	erode(finalMat, finalMat, getStructuringElement(MORPH_RECT, Size(5, 1)), Point(-1, -1), 1);
 	erode(finalMat, finalMat, getStructuringElement(MORPH_RECT, Size(1, 5)), Point(-1, -1), 1);
+
+	//imshow("ERODE", finalMat);
 
 	// Extract lines
 	std::vector<Vec4i> linesVec;
