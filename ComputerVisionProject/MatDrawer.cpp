@@ -28,7 +28,7 @@ void MatDrawer::DrawRectanglePointsTo(Mat input, RotatedRect rectangle, ColorCha
 	DrawPointsTo(input, intPoints, colorChannelIdx);
 }
 
-void MatDrawer::DrawLabelToContour(Mat& im, const std::string label, std::vector<cv::Point>& contour)
+void MatDrawer::DrawLabelToContour(Mat& im, const std::string label, std::vector<cv::Point>& contour, Scalar color)
 {
 	int fontface = cv::FONT_HERSHEY_SIMPLEX;
 	double scale = 0.4;
@@ -39,6 +39,6 @@ void MatDrawer::DrawLabelToContour(Mat& im, const std::string label, std::vector
 	cv::Rect r = cv::boundingRect(contour);
 
 	cv::Point pt(r.x + ((r.width - text.width) / 2), r.y + ((r.height + text.height) / 2));
-	cv::rectangle(im, pt + cv::Point(0, baseline), pt + cv::Point(text.width, -text.height), CV_RGB(255, 255, 255), CV_FILLED);
+	cv::rectangle(im, pt + cv::Point(0, baseline), pt + cv::Point(text.width, -text.height), color, CV_FILLED);
 	cv::putText(im, label, pt, fontface, scale, CV_RGB(0, 0, 0), thickness, 8);
 }

@@ -171,6 +171,9 @@
   <ItemGroup>
     <ClInclude Include="AcitivityElement.h" />
     <ClInclude Include="ActionElement.h" />
+    <ClInclude Include="ActivityElementHeaders.h" />
+    <ClInclude Include="ActivityFactory.h" />
+    <ClInclude Include="LineElement.h" />
     <ClInclude Include="DecisionElement.h" />
     <ClInclude Include="Enums.h" />
     <ClInclude Include="FinalNodeElement.h" />

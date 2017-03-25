@@ -9,7 +9,7 @@ namespace activity
 	private:
 		ActivityElement* _previousFlowElement;
 	public:
-		FinalNodeElement(TypeId typeId, string name, Contour contour, ActivityElement *previousFlowElement = nullptr): ActivityElement(typeId, name, contour)
+		FinalNodeElement(int id, Contour contour, ActivityElement *previousFlowElement = nullptr) : ActivityElement(ACTIVITY_TYPE_ID_FINAL_NODE, "FINAL NODE", id, contour)
 			, _previousFlowElement(previousFlowElement)
 		{
 		}

@@ -2,6 +2,8 @@
 #include "Enums.h"
 #include "ActivityRecognition.h"
 #include "MatTransformer.h"
+#include "ActivityFactory.h"
+#include "MatDrawer.h"
 
 #include "..\ComputerVisionProject\AcitivityElement.h"
 
@@ -9,8 +11,6 @@
 #include <set>
 #include <iostream>
 
-
- 
 using namespace cv;
 using namespace std;
 using namespace activity;
@@ -22,6 +22,7 @@ int main(int, char** argv)
 	if (srcMat.empty())
 		return -1;
 
+	MatDrawer drawer;
 	MatTransformer matTransformer;
 
 	Mat grayMat = matTransformer.ToGray(srcMat, true);
@@ -40,26 +41,23 @@ int main(int, char** argv)
 
 	//imshow("dillatated", dillMat);
 
-	ActivityRecognition shapeRecognition;
+	std::vector<ActivityElement*> activityElements;
+	ActivityFactory::CreateActivityElements(grayMat, drawingMat, dillMat, linesMat, activityElements);
 
-	Contour initialNodeContour;
-	shapeRecognition.RenderInitialNode(dillMat, drawingMat, initialNodeContour);
+	Mat finalMat = Mat::zeros(srcMat.size(), CV_8UC3);
+	for (auto &activityEle : activityElements)
+	{
+		drawContours(finalMat, Contours{ activityEle->GetContour() }, 0, Util::Colors::Green, 2, 8);
 
-	Contours actionContours;
-	Contours decisionContours;
-	shapeRecognition.RenderActionAndDecisionElements(linesMat, drawingMat, actionContours, decisionContours);
+		if (activityEle->GetTypeId() == ACTIVITY_TYPE_ID_LINE)
+		{
+			drawer.DrawLabelToContour(finalMat, ((LineElement*)activityEle)->GetFromElement()->GetName() + " , " + ((LineElement*)activityEle)->GetToElement()->GetName(), activityEle->GetContour());
+		}
+		else
+			drawer.DrawLabelToContour(finalMat, activityEle->GetName(), activityEle->GetContour());
+	}
 
-	//intersectConvexConvex
-
-	Contours finalNodeContours;
-	shapeRecognition.RenderFinalNodes(grayMat, drawingMat, finalNodeContours);
-
-	Contours lineContours;
-	Mat binaryConnectingLinesMat = shapeRecognition.RenderConnectingLines(drawingMat, dillMat, lineContours);
-
-	//imshow("drawing", drawingMat);
-
-	imshow("Connecting lines", binaryConnectingLinesMat);
+	imshow("final", finalMat);
 
 	waitKey(0);
 	return EXIT_SUCCESS;

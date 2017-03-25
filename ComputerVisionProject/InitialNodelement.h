@@ -10,7 +10,7 @@ namespace activity
 		ActivityElement* _nextFlowElement;
 
 	public:
-		InitialNodelement(TypeId typeId, string name, Contour contour, ActivityElement *nextFlowElement = nullptr) : ActivityElement(typeId, name, contour)
+		InitialNodelement(int id, Contour contour, ActivityElement *nextFlowElement = nullptr) : ActivityElement(ACTIVITY_TYPE_ID_INITIAL_NODE, "INITIAL NODE", id, contour)
 			, _nextFlowElement(nextFlowElement)
 		{
 		}

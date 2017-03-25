@@ -98,11 +98,13 @@ void ActivityRecognition::RenderFinalNodes(const Mat input, Mat dst, std::vector
 
 	// Extract contours of circles
 	vector<vector<cv::Point>> contours;
-	cv::findContours(input.clone(), contours, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+	vector<Vec4i> hierarchy;
+	cv::findContours(emptyMat.clone(), contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
 
 	for (int i = 0; i < contours.size(); i++)
 	{
-		finalNodeContours.push_back(contours[i]);
+		if (hierarchy[i][HIERARCHY_FIRT_CHILD] == HIERARCHY_VALUE_NONE)
+			finalNodeContours.push_back(contours[i]);
 	}
 }
 
@@ -125,13 +127,10 @@ void ActivityRecognition::RenderInitialNode(const Mat input, Mat dst, std::vecto
 
 		if (approxPolyPoints.size() > 6)
 		{
-			//minEnclosingCircle((Mat)approxPolyPoints[i], center[i], radius[i]);
 			cv::Rect r = cv::boundingRect(contours[i]);
 			cv::Point pt(r.x + ((r.width) / 2), r.y + ((r.height) / 2));
 
 			circle(dst, pt, 10, Util::Colors::Green, 2);
-			MatDrawer md;
-			md.DrawLabelToContour(dst, "Initial node", contours[i]);
 
 			initialNodeContour = contours[i];
 			break;

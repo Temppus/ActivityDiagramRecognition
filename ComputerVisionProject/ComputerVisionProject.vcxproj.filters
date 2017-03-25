@@ -16,9 +16,6 @@
     <Filter Include="Header Files\Elements">
       <UniqueIdentifier>{3dbec5bb-f73b-489c-8cbc-ad10f0329a25}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Elements">
-      <UniqueIdentifier>{61d545ac-4985-4ffd-bf5b-a618b9ea278f}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -69,6 +66,15 @@
       <Filter>Header Files\Elements</Filter>
     </ClInclude>
     <ClInclude Include="FinalNodeElement.h">
+      <Filter>Header Files\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="ActivityFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ActivityElementHeaders.h">
+      <Filter>Header Files\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="LineElement.h">
       <Filter>Header Files\Elements</Filter>
     </ClInclude>
   </ItemGroup>

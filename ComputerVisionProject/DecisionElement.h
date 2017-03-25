@@ -11,7 +11,8 @@ namespace activity
 		ActivityElement* _negativeElement;
 
 	public:
-		DecisionElement(TypeId typeId, string name, Contour contour, ActivityElement *positiveElement = nullptr, ActivityElement *negativeElement = nullptr) : ActivityElement(typeId, name, contour)
+		DecisionElement(int id, Contour contour, ActivityElement *positiveElement = nullptr, ActivityElement *negativeElement = nullptr)
+			: ActivityElement(ACTIVITY_TYPE_ID_DECISION, "DECISION", id, contour)
 			, _positiveElement(positiveElement), _negativeElement(negativeElement)
 		{
 		}

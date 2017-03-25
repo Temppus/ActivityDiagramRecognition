@@ -11,7 +11,7 @@ namespace activity
 		ActivityElement* _outputElement;
 
 	public:
-		ActionElement(TypeId typeId, string name, Contour contour) : ActivityElement(typeId, name, contour)
+		ActionElement(int id, Contour contour) : ActivityElement(ACTIVITY_TYPE_ID_ACTION, "ACTION", id, contour)
 		{
 		}
 

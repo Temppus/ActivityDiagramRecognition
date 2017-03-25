@@ -17,7 +17,8 @@ namespace activity
 		ACTIVITY_TYPE_ID_ACTION,
 		ACTIVITY_TYPE_ID_DECISION,
 		ACTIVITY_TYPE_ID_INITIAL_NODE,
-		ACTIVITY_TYPE_ID_FINAL_NODE
+		ACTIVITY_TYPE_ID_FINAL_NODE,
+		ACTIVITY_TYPE_ID_LINE
 	};
 
 	class ActivityElement
@@ -26,17 +27,19 @@ namespace activity
 		TypeId _typeId;
 		string _name;
 		Contour _contour;
+
 	public:
-		ActivityElement(TypeId typeId, string name, Contour contour)
+		ActivityElement(TypeId typeId, string name, int id, Contour contour)
 		{
 			_typeId = typeId;
-			_name = name;
+			_name = name + " " + to_string(id);
 			_contour = contour;
 		}
 
-		TypeId GetTypeId() { return _typeId; }
-		string GetName() { return _name; }
-		Contour GetContour() { return _contour; }
+		TypeId GetTypeId() const { return _typeId; }
+		string GetName() const { return _name; }
+		Contour GetContour() const { return _contour; }
+
 	};
 }
 
