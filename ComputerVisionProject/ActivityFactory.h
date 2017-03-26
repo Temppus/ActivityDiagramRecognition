@@ -125,9 +125,9 @@ public:
 		cv::approxPolyDP(lineContour, approxLineContour, arcLengthCoef, true);
 
 		Point point = lineEnding == LINE_ENDING_START ? approxLineContour.front() : approxLineContour.back();
-		int lineLength = arcLength(approxLineContour, false);
+		int lineLength = static_cast<int>(arcLength(approxLineContour, false));
 
-		int radius = (outPutMat.rows + outPutMat.cols) * 0.015f;
+		int radius = static_cast<int>((outPutMat.rows + outPutMat.cols) * 0.015f);
 		radius = radius > (lineLength / 2) ? (lineLength / 2) : radius;
 
 		drawContours(outPutMat, Contours{ approxLineContour }, 0, Util::Colors::White, CV_FILLED, LINE_8);
