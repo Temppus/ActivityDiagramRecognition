@@ -173,6 +173,7 @@
     <ClInclude Include="ActionElement.h" />
     <ClInclude Include="ActivityElementHeaders.h" />
     <ClInclude Include="ActivityFactory.h" />
+    <ClInclude Include="boolinq.h" />
     <ClInclude Include="LineElement.h" />
     <ClInclude Include="DecisionElement.h" />
     <ClInclude Include="Enums.h" />
@@ -185,6 +186,5 @@
     <ClInclude Include="Util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

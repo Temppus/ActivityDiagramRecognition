@@ -45,17 +45,18 @@ Mat MatTransformer::FillGaps(const Mat input, int erodeTimes)
 	return dilatated;
 }
 
-Mat MatTransformer::ToHoughLinesP(const Mat input, int threshold, double minLineLength, double maxLineGap)
+Mat MatTransformer::ToHoughLinesP(const Mat input, int threshold, double rho, double theta, double minLineLength, double maxLineGap)
 {
 	Mat contourImage = Mat::zeros(input.size(), CV_8UC3);
 
 	std::vector<Vec4i> lines;
-	HoughLinesP(input, lines, 1, CV_PI / 180, threshold, minLineLength, maxLineGap);
+	HoughLinesP(input, lines, rho, theta, threshold, minLineLength, maxLineGap);
 
 	for (size_t i = 0; i < lines.size(); i++)
 	{
 		line(contourImage, Point(lines[i][0], lines[i][1]),
-			Point(lines[i][2], lines[i][3]), Scalar(0, 0, 255), 3, 8);
+			Point(lines[i][2], lines[i][3]), Scalar(0, 0, 255), 4, 8);
 	}
+
 	return contourImage;
 }

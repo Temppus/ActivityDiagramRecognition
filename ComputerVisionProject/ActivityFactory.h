@@ -2,13 +2,17 @@
 
 #include "..\ComputerVisionProject\ActivityElementHeaders.h"
 #include "Util.h"
+#include <limits>
+#include <tuple>
+
+#include "boolinq.h"
 
 using namespace activity;
 
-enum LineEnding
+enum LinePoint
 {
-	LINE_ENDING_START,
-	LINE_ENDING_END,
+	LINE_POINT_START,
+	LINE_POINT_END,
 };
 
 class ActivityFactory
@@ -73,51 +77,89 @@ public:
 		Contours lineContours;
 		Mat binaryConnectingLinesMat = shapeRecognition.RenderConnectingLines(drawingMat, dillMat, lineContours);
 
+		std::multiset<std::tuple<double, LineElement*>> lineMaxDistances;
+
 		for (int lineIndex = 0; lineIndex < lineContours.size(); lineIndex++)
 		{
 			Contour lineContour = lineContours[lineIndex];
 			LineElement * line = new LineElement(lineIndex + 1, lineContour, nullptr, nullptr);
 
-			for (auto &activityEle : activityElements)
+			double minValueStart;
+			double minValueEnd;
+			line->SetFromElement(FindConnectingElement(activityElements, line, LINE_POINT_START, minValueStart));
+			line->SetToElement(FindConnectingElement(activityElements, line, LINE_POINT_END, minValueEnd));
+
+			lineMaxDistances.insert(make_tuple(std::max(minValueStart, minValueEnd), line));
+		}
+
+		std::vector<std::tuple<double, LineElement*>> resultVec(lineMaxDistances.begin(), lineMaxDistances.end());
+		double thresholdPct = 3.0;
+		int ignoreFromIndex = -1;
+
+		auto filteredLines = boolinq::from(resultVec).where_i([resultVec, thresholdPct, &ignoreFromIndex](std::tuple<double, LineElement*> currentTuple, int i)
+		{
+			if (i == ignoreFromIndex)
 			{
-				// Create drawing mat for acttivity element contour
-				Mat activityEleMat = Mat::zeros(rows, cols, CV_8UC1);
-				drawContours(activityEleMat, Contours{ activityEle->GetContour() }, 0, Util::Colors::White, 5, LINE_8);
-
-				// Find intersecting element from start of line
-				Mat lineFromMat = Mat::zeros(rows, cols, CV_8UC1);
-				RenderEndpointCirclesForLine(lineContour, lineFromMat, LINE_ENDING_START);
-
-				Mat andFromMat = Mat::zeros(rows, cols, CV_8UC1);
-				bitwise_and(activityEleMat, lineFromMat, andFromMat);
-
-				if (countNonZero(andFromMat) > 0)
-				{
-					line->SetFromElement(activityEle);
-				}
-
-				// Find intersecting element from end of line
-				Mat lineToMat = Mat::zeros(rows, cols, CV_8UC1);
-				RenderEndpointCirclesForLine(lineContour, lineToMat, LINE_ENDING_END);
-
-				Mat andToMat = Mat::zeros(rows, cols, CV_8UC1);
-				bitwise_and(activityEleMat, lineToMat, andToMat);
-
-				if (countNonZero(andToMat) > 0)
-				{
-					line->SetToElement(activityEle);
-				}
+				delete std::get<1>(currentTuple);
+				return false;
 			}
 
-			if (!line->IsEmpty())
-				activityElements.push_back(line);
-			else
-				delete line;
-		}
+			if (i == 0 || i == resultVec.size() - 1)
+				return true;
+
+			if (std::get<0>(currentTuple) * thresholdPct < (std::get<0>(resultVec[i + 1])))
+			{
+				ignoreFromIndex = i + 1;
+			}
+			return true;
+		}).select([&activityElements](std::tuple<double, LineElement*> tuple) 
+		{ 
+			auto lineEle = std::get<1>(tuple);
+			activityElements.push_back(lineEle);
+			return lineEle;
+		}).toVector();
 	}
 
-	private:
-	static void RenderEndpointCirclesForLine(Contour lineContour, Mat outPutMat, LineEnding lineEnding)
+private:
+	static ActivityElement* FindConnectingElement(std::vector<ActivityElement*>& activityElements, LineElement * line, LinePoint lineTypePoint, double &minDistance)
+	{
+		if (activityElements.empty())
+			return nullptr;
+
+		Contour approxLineContour;
+
+		double arcLengthCoef = cv::arcLength(line->GetContour(), true) * 0.2;
+		cv::approxPolyDP(line->GetContour(), approxLineContour, arcLengthCoef, true);
+
+		Point linePoint = lineTypePoint == LINE_POINT_START ? approxLineContour.front() : approxLineContour.back();
+
+		size_t minDistanceIndex;
+		minDistance = std::numeric_limits<double>::max();
+
+		std::vector<double> distances;
+
+		for (int i = 0; i < activityElements.size(); i++)
+		{
+			auto activityEle = activityElements[i];
+
+			if (activityEle->GetTypeId() == ACTIVITY_TYPE_ID_LINE)
+				continue;
+
+			double currentDist = std::abs(pointPolygonTest(activityEle->GetContour(), linePoint, true));
+
+			distances.push_back(currentDist);
+
+			if (currentDist < minDistance)
+			{
+				minDistance = currentDist;
+				minDistanceIndex = i;
+			}
+		}
+
+		return activityElements[minDistanceIndex];
+	}
+
+	/*static void RenderEndpointCirclesForLine(Contour lineContour, Mat outPutMat, LineEnding lineEnding)
 	{
 		Contour approxLineContour;
 
@@ -132,5 +174,10 @@ public:
 
 		drawContours(outPutMat, Contours{ approxLineContour }, 0, Util::Colors::White, CV_FILLED, LINE_8);
 		circle(outPutMat, point, radius, Util::Colors::White, 2, LINE_8, 0);
-	}
+
+		imshow("EEE", outPutMat);
+		waitKey(200);
+	}*/
+
+
 };

@@ -39,7 +39,6 @@ namespace activity
 		TypeId GetTypeId() const { return _typeId; }
 		string GetName() const { return _name; }
 		Contour GetContour() const { return _contour; }
-
 	};
 }
 

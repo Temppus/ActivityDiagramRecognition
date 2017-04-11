@@ -36,5 +36,14 @@ namespace Util
 	};
 }
 
+namespace Util
+{
+	class Containers
+	{
+	public:
+		static std::vector<double> Util::Containers::FilterElementsByThresholdPct(const std::vector<double>& vec, double thresholdPctValue);
+	};
+}
+
 
 

@@ -77,5 +77,8 @@
     <ClInclude Include="LineElement.h">
       <Filter>Header Files\Elements</Filter>
     </ClInclude>
+    <ClInclude Include="boolinq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

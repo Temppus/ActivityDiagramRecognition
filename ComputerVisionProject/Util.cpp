@@ -1,4 +1,5 @@
 #include "Util.h"
+#include <numeric>                                                              
 
 const Scalar Util::Colors::Red = Scalar(0, 0, 255);
 const Scalar Util::Colors::Green = Scalar(0, 255, 0);
@@ -37,4 +38,20 @@ Scalar Util::Random::RandomColor()
 	int r = rng.uniform(0, 255);
 
 	return Scalar(b, g, r);
+}
+
+std::vector<double> Util::Containers::FilterElementsByThresholdPct(const std::vector<double>& vec, double thresholdPctValue)
+{
+	std::vector<double> filteredVec;
+
+	double avgValue = std::accumulate(vec.begin(), vec.end(), 0.0) / vec.size();
+
+	for (int i = 0; i < vec.size(); i++)
+	{
+		double absDiff = std::abs(vec[i] - avgValue);
+		if (avgValue * thresholdPctValue <= absDiff)
+			filteredVec.push_back(vec[i]);
+	}
+
+	return filteredVec;
 }

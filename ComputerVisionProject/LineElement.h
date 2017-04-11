@@ -15,7 +15,7 @@ namespace activity
 			: ActivityElement(ACTIVITY_TYPE_ID_LINE, "LINE", id, contour)
 			, _fromElement(fromElement), _toElement(toElement)
 		{
-
+			;
 		}
 
 		void SetFromElement(ActivityElement* fromELe)
@@ -36,11 +36,6 @@ namespace activity
 		const ActivityElement * const GetToElement() const
 		{
 			return _toElement;
-		}
-
-		bool IsEmpty()
-		{
-			return _fromElement == nullptr &&  _toElement == nullptr;
 		}
 	};
 }

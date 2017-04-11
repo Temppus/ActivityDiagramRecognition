@@ -65,8 +65,8 @@ void ActivityRecognition::RenderActionAndDecisionElements(const Mat input, Mat d
 			MatDrawer md;
 			md.DrawLabelToContour(dst, shapeName, contours[i]);
 
-			cout << angle << endl;
-			cout << endl;
+			//cout << angle << endl;
+			//cout << endl;
 		}
 	}
 }
@@ -108,14 +108,17 @@ void ActivityRecognition::RenderFinalNodes(const Mat input, Mat dst, std::vector
 	}
 }
 
-void ActivityRecognition::RenderInitialNode(const Mat input, Mat dst, std::vector<cv::Point>& initialNodeContour)
+void ActivityRecognition::RenderInitialNode(const Mat dillinput, Mat dst, std::vector<cv::Point>& initialNodeContour)
 {
 	// Contour structures
 	vector<vector<cv::Point>> contours;
 	vector<Vec4i> hierarchy;
 	vector<cv::Point> approxPolyPoints;
 
-	cv::findContours(input.clone(), contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
+	cv::findContours(dillinput.clone(), contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
+
+	size_t maxCirclePoints = 0;
+	int maxPointsIndex = -1;
 
 	for (int i = 0; i < contours.size(); i++)
 	{
@@ -127,14 +130,21 @@ void ActivityRecognition::RenderInitialNode(const Mat input, Mat dst, std::vecto
 
 		if (approxPolyPoints.size() > 6)
 		{
-			cv::Rect r = cv::boundingRect(contours[i]);
-			cv::Point pt(r.x + ((r.width) / 2), r.y + ((r.height) / 2));
-
-			circle(dst, pt, 10, Util::Colors::Green, 2);
-
-			initialNodeContour = contours[i];
-			break;
+			if (approxPolyPoints.size() > maxCirclePoints)
+			{
+				maxCirclePoints = approxPolyPoints.size();
+				maxPointsIndex = i;
+			}
 		}
+	}
+
+	if (maxPointsIndex >= 0)
+	{
+		cv::Rect r = cv::boundingRect(contours[maxPointsIndex]);
+		cv::Point pt(r.x + ((r.width) / 2), r.y + ((r.height) / 2));
+
+		circle(dst, pt, 10, Util::Colors::Green, 2);
+		initialNodeContour = contours[maxPointsIndex];
 	}
 }
 
