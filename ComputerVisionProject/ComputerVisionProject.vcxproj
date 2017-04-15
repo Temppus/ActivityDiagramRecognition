@@ -162,11 +162,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ActivityFactory.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MatDrawer.cpp" />
     <ClCompile Include="MatTransformer.cpp" />
+    <ClCompile Include="Test.cpp" />
     <ClCompile Include="Util.cpp" />
-    <ClCompile Include="ShapeRecognition.cpp" />
+    <ClCompile Include="ActivityRecognition.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AcitivityElement.h" />
@@ -174,6 +176,7 @@
     <ClInclude Include="ActivityElementHeaders.h" />
     <ClInclude Include="ActivityFactory.h" />
     <ClInclude Include="boolinq.h" />
+    <ClInclude Include="CvWrapperTypeDefs.h" />
     <ClInclude Include="LineElement.h" />
     <ClInclude Include="DecisionElement.h" />
     <ClInclude Include="Enums.h" />

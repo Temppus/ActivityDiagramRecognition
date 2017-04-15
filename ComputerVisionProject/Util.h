@@ -10,6 +10,7 @@ namespace Util
 	{
 	public:
 		static int CalculateRectangleAngle(RotatedRect rectangle);
+		static double RadiansToDegrees(double radians);
 	};
 }
 
@@ -33,15 +34,6 @@ namespace Util
 		static Scalar RandomColor();
 	public:
 		static RNG rng;
-	};
-}
-
-namespace Util
-{
-	class Containers
-	{
-	public:
-		static std::vector<double> Util::Containers::FilterElementsByThresholdPct(const std::vector<double>& vec, double thresholdPctValue);
 	};
 }
 

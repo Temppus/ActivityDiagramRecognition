@@ -9,9 +9,6 @@ using namespace cv;
 
 namespace activity
 {
-	typedef std::vector<cv::Point> Contour;
-	typedef std::vector<std::vector<cv::Point>> Contours;
-
 	enum TypeId
 	{
 		ACTIVITY_TYPE_ID_ACTION,

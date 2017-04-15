@@ -1,13 +1,17 @@
 #pragma once
 
-#include "..\ComputerVisionProject\ActivityElementHeaders.h"
-#include "Util.h"
-#include <limits>
-#include <tuple>
+#include <vector>
 
-#include "boolinq.h"
+namespace activity
+{
+	class ActivityElement;
+	class LineElement;
+}
 
-using namespace activity;
+namespace cv
+{
+	class Mat;
+}
 
 enum LinePoint
 {
@@ -17,44 +21,26 @@ enum LinePoint
 
 class ActivityFactory
 {
-private:
-	Contours _lineContours;
-	Mat _linesMat;
-	unsigned int _rows;
-	unsigned int _columns;
-	unsigned int _idCounter;
-
 public:
-	ActivityFactory(unsigned int rows, unsigned int columns, Contours lineContours)
-	{
-		_idCounter = 1;
-		_rows = rows;
-		_columns = columns;
-		_linesMat = Mat::zeros(_rows, _columns, CV_8UC1);
+	static void CreateActivityElements(cv::Mat cannyEdgeMat, cv::Mat grayMat, cv::Mat dillMat, std::vector<activity::ActivityElement*>& activityElements);
+private:
+	static activity::ActivityElement* FindConnectingElement(std::vector<activity::ActivityElement*>& activityElements, activity::LineElement * line, LinePoint lineTypePoint, double &minDistance);
 
-		_lineContours = lineContours;
-
-		for (int i = 0; i < lineContours.size(); i++)
-		{
-			drawContours(_linesMat, lineContours, i, Util::Colors::White, CV_FILLED, LINE_8);
-		}
-	}
-
-	static void CreateActivityElements(Mat grayMat, Mat drawingMat, Mat dillMat, Mat linesMat, std::vector<ActivityElement*>& activityElements)
+	/*static void CreateActivityElements(Mat grayMat, Mat drawingMat, Mat dillMat, Mat linesMat, std::vector<ActivityElement*>& activityElements)
 	{
 		int rows = drawingMat.rows;
 		int cols = drawingMat.cols;
 
-		ActivityRecognition shapeRecognition;
+		ActivityRecognition activityRecognition;
 
 		Contour initialNodeContour;
-		shapeRecognition.RenderInitialNode(dillMat, drawingMat, initialNodeContour);
+		activityRecognition.RenderInitialNode(dillMat, drawingMat, initialNodeContour);
 
 		activityElements.push_back(new InitialNodelement(1, initialNodeContour));
 
 		Contours actionContours;
 		Contours decisionContours;
-		shapeRecognition.RenderActionAndDecisionElements(linesMat, drawingMat, actionContours, decisionContours);
+		activityRecognition.RenderActionAndDecisionElements(linesMat, drawingMat, actionContours, decisionContours);
 
 		for (int actionIndex = 0; actionIndex < actionContours.size(); actionIndex++)
 		{
@@ -67,7 +53,7 @@ public:
 		}
 
 		Contours finalNodeContours;
-		shapeRecognition.RenderFinalNodes(grayMat, drawingMat, finalNodeContours);
+		activityRecognition.RenderFinalNodes(grayMat, drawingMat, finalNodeContours);
 
 		for (int finalNodeIndex = 0; finalNodeIndex < finalNodeContours.size(); finalNodeIndex++)
 		{
@@ -75,9 +61,24 @@ public:
 		}
 
 		Contours lineContours;
-		Mat binaryConnectingLinesMat = shapeRecognition.RenderConnectingLines(drawingMat, dillMat, lineContours);
+		Mat arrowLinesMat;
+		Mat binaryConnectingLinesMat = activityRecognition.RenderConnectingLines(drawingMat, dillMat, lineContours, arrowLinesMat);
 
-		std::multiset<std::tuple<double, LineElement*>> lineMaxDistances;
+		Mat andMat;
+		bitwise_and(arrowLinesMat, binaryConnectingLinesMat, andMat);
+
+		Mat andNot;
+		bitwise_not(andMat, andNot);
+
+		Mat arrowsMat;
+		bitwise_and(andNot, arrowLinesMat, arrowsMat);
+
+		dilate(arrowsMat, arrowsMat, getStructuringElement(MORPH_RECT, Size(5, 5)), Point(-1, -1), 3);
+		erode(arrowsMat, arrowsMat, getStructuringElement(MORPH_RECT, Size(5, 5)), Point(-1, -1), 3);
+
+		imshow("arrows", arrowsMat);
+
+		std::multiset<std::tuple<double, LineElement*>> lineInfoDistances;
 
 		for (int lineIndex = 0; lineIndex < lineContours.size(); lineIndex++)
 		{
@@ -86,13 +87,19 @@ public:
 
 			double minValueStart;
 			double minValueEnd;
-			line->SetFromElement(FindConnectingElement(activityElements, line, LINE_POINT_START, minValueStart));
-			line->SetToElement(FindConnectingElement(activityElements, line, LINE_POINT_END, minValueEnd));
 
-			lineMaxDistances.insert(make_tuple(std::max(minValueStart, minValueEnd), line));
+			auto connectingEle1 = FindConnectingElement(activityElements, line, LINE_POINT_START, minValueStart);
+			auto connectingEle2 = FindConnectingElement(activityElements, line, LINE_POINT_END, minValueEnd);
+
+
+
+			line->SetFromElement(connectingEle1);
+			line->SetToElement(connectingEle2);
+
+			lineInfoDistances.insert(make_tuple(std::max(minValueStart, minValueEnd), line));
 		}
 
-		std::vector<std::tuple<double, LineElement*>> resultVec(lineMaxDistances.begin(), lineMaxDistances.end());
+		std::vector<std::tuple<double, LineElement*>> resultVec(lineInfoDistances.begin(), lineInfoDistances.end());
 		double thresholdPct = 3.0;
 		int ignoreFromIndex = -1;
 
@@ -101,6 +108,7 @@ public:
 			if (i == ignoreFromIndex)
 			{
 				delete std::get<1>(currentTuple);
+				std::get<1>(currentTuple) = nullptr;
 				return false;
 			}
 
@@ -112,16 +120,17 @@ public:
 				ignoreFromIndex = i + 1;
 			}
 			return true;
-		}).select([&activityElements](std::tuple<double, LineElement*> tuple) 
-		{ 
+		}).select([&activityElements](std::tuple<double, LineElement*> tuple)
+		{
 			auto lineEle = std::get<1>(tuple);
 			activityElements.push_back(lineEle);
 			return lineEle;
 		}).toVector();
 	}
+	*/
 
 private:
-	static ActivityElement* FindConnectingElement(std::vector<ActivityElement*>& activityElements, LineElement * line, LinePoint lineTypePoint, double &minDistance)
+	/*static ActivityElement* FindConnectingElement(std::vector<ActivityElement*>& activityElements, LineElement * line, LinePoint lineTypePoint, double &minDistance)
 	{
 		if (activityElements.empty())
 			return nullptr;
@@ -158,6 +167,7 @@ private:
 
 		return activityElements[minDistanceIndex];
 	}
+	*/
 
 	/*static void RenderEndpointCirclesForLine(Contour lineContour, Mat outPutMat, LineEnding lineEnding)
 	{

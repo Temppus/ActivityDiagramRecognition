@@ -31,6 +31,11 @@ int Util::Angles::CalculateRectangleAngle(RotatedRect rectangle)
 	return static_cast<int>(angle);
 }
 
+double Util::Angles::RadiansToDegrees(double radians)
+{
+	return radians *(180.0 / CV_PI);
+}
+
 Scalar Util::Random::RandomColor()
 {
 	int b = rng.uniform(0, 255);
@@ -38,20 +43,4 @@ Scalar Util::Random::RandomColor()
 	int r = rng.uniform(0, 255);
 
 	return Scalar(b, g, r);
-}
-
-std::vector<double> Util::Containers::FilterElementsByThresholdPct(const std::vector<double>& vec, double thresholdPctValue)
-{
-	std::vector<double> filteredVec;
-
-	double avgValue = std::accumulate(vec.begin(), vec.end(), 0.0) / vec.size();
-
-	for (int i = 0; i < vec.size(); i++)
-	{
-		double absDiff = std::abs(vec[i] - avgValue);
-		if (avgValue * thresholdPctValue <= absDiff)
-			filteredVec.push_back(vec[i]);
-	}
-
-	return filteredVec;
 }

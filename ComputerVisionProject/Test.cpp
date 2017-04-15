@@ -1,100 +1,72 @@
-/**
-* @file HoughCircle_Demo.cpp
-* @brief Demo code for Hough Transform
-* @author OpenCV team
-*/
-
-#include "opencv2/imgcodecs.hpp"
-#include "opencv2/highgui.hpp"
-#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
-#include "Helpers.h"
+#include <stdio.h>
+#include <stdlib.h>
 
-using namespace std;
 using namespace cv;
+using namespace std;
 
-namespace
+/// Global variables
+Mat src, src_gray;
+int thresh = 200;
+int max_thresh = 255;
+
+char* source_window = "Source image";
+char* corners_window = "Corners detected";
+
+/// Function header
+void cornerHarris_demo(int, void*);
+
+/** @function main */
+int mainn(int argc, char** argv)
 {
-	// windows and trackbars name
-	const std::string windowName = "Hough Circle Detection Demo";
-	const std::string cannyThresholdTrackbarName = "Canny threshold";
-	const std::string accumulatorThresholdTrackbarName = "Accumulator Threshold";
-	const std::string usage = "Usage : tutorial_HoughCircle_Demo <path_to_input_image>\n";
+	/// Load source image and convert it to gray
+	src = imread("C:\\Users\\Ivan\\Desktop\\test2.jpg", 1);
+	cvtColor(src, src_gray, CV_BGR2GRAY);
 
-	// initial and max values of the parameters of interests.
-	const int cannyThresholdInitialValue = 200;
-	const int accumulatorThresholdInitialValue = 50;
-	const int maxAccumulatorThreshold = 200;
-	const int maxCannyThreshold = 255;
+	/// Create a window and a trackbar
+	namedWindow(source_window, CV_WINDOW_AUTOSIZE);
+	createTrackbar("Threshold: ", source_window, &thresh, max_thresh, cornerHarris_demo);
+	imshow(source_window, src);
 
-	void HoughDetection(const Mat& src_gray, const Mat& src_display, int cannyThreshold, int accumulatorThreshold)
-	{
-		// will hold the results of the detection
-		std::vector<Vec3f> circles;
-		// runs the actual detection
-		HoughCircles(src_gray, circles, HOUGH_GRADIENT, 1, src_gray.rows / 8, cannyThreshold, accumulatorThreshold, 0, 0);
+	cornerHarris_demo(0, 0);
 
-		// clone the colour, input image for displaying purposes
-		Mat display = src_display.clone();
-		for (size_t i = 0; i < circles.size(); i++)
-		{
-			Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
-			int radius = cvRound(circles[i][2]);
-			// circle center
-			circle(display, center, 3, Scalar(0, 255, 0), -1, 8, 0);
-			// circle outline
-			circle(display, center, radius, Scalar(0, 0, 255), 3, 8, 0);
-		}
-
-		// shows the results
-		imshow(windowName, display);
-	}
+	waitKey(0);
+	return(0);
 }
 
-
-int mains(int argc, char** argv)
+/** @function cornerHarris_demo */
+void cornerHarris_demo(int, void*)
 {
-	Mat src, src_gray;
 
-	src = imread("C:\\Users\\Ivan\\Desktop\\test2.jpg", IMREAD_COLOR);
+	Mat dst, dst_norm, dst_norm_scaled;
+	dst = Mat::zeros(src.size(), CV_32FC1);
 
-	if (src.empty())
-		return -1;
+	/// Detector parameters
+	int blockSize = 2;
+	int apertureSize = 3;
+	double k = 0.04;
 
-	Mat grayMat = Helpers::toGray(src, true);
-	imshow("gray", grayMat);
+	/// Detecting corners
+	cornerHarris(src_gray, dst, blockSize, apertureSize, k, BORDER_DEFAULT);
 
-	Mat edgesMat = Helpers::toEdges(grayMat);
-	imshow("edges", edgesMat);
+	/// Normalizing
+	normalize(dst, dst_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+	convertScaleAbs(dst_norm, dst_norm_scaled);
 
-	src = edgesMat;
-
-	//declare and initialize both parameters that are subjects to change
-	int cannyThreshold = cannyThresholdInitialValue;
-	int accumulatorThreshold = accumulatorThresholdInitialValue;
-
-	// create the main window, and attach the trackbars
-	namedWindow(windowName, WINDOW_AUTOSIZE);
-	createTrackbar(cannyThresholdTrackbarName, windowName, &cannyThreshold, maxCannyThreshold);
-	createTrackbar(accumulatorThresholdTrackbarName, windowName, &accumulatorThreshold, maxAccumulatorThreshold);
-
-	// infinite loop to display
-	// and refresh the content of the output image
-	// until the user presses q or Q
-	char key = 0;
-	while (key != 'q' && key != 'Q')
+	/// Drawing a circle around corners
+	for (int j = 0; j < dst_norm.rows; j++)
 	{
-		// those paramaters cannot be =0
-		// so we must check here
-		cannyThreshold = std::max(cannyThreshold, 1);
-		accumulatorThreshold = std::max(accumulatorThreshold, 1);
-
-		//runs the detection, and update the display
-		HoughDetection(src_gray, src, cannyThreshold, accumulatorThreshold);
-
-		// get user key
-		key = (char)waitKey(10);
+		for (int i = 0; i < dst_norm.cols; i++)
+		{
+			if ((int)dst_norm.at<float>(j, i) > thresh)
+			{
+				circle(dst_norm_scaled, Point(i, j), 5, Scalar(0), 2, 8, 0);
+			}
+		}
 	}
-
-	return 0;
+	/// Showing the result
+	namedWindow(corners_window, CV_WINDOW_AUTOSIZE);
+	imshow(corners_window, dst_norm_scaled);
 }

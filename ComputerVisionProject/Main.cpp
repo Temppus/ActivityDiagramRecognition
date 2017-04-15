@@ -4,8 +4,7 @@
 #include "MatTransformer.h"
 #include "ActivityFactory.h"
 #include "MatDrawer.h"
-
-#include "..\ComputerVisionProject\AcitivityElement.h"
+#include "ActivityElementHeaders.h"
 
 #include <map>
 #include <set>
@@ -17,6 +16,10 @@ using namespace activity;
 
 int main(int, char** argv)
 {
+	MatTransformer matTransformer;
+	ActivityRecognition activityRecognition;
+	MatDrawer drawer;
+
 	Mat srcMat = imread("C:\\Users\\Ivan\\Desktop\\test2.jpg", IMREAD_COLOR);
 
 	if (srcMat.empty())
@@ -25,9 +28,6 @@ int main(int, char** argv)
 	/*VideoCapture cap(0);
 	if (!cap.isOpened())
 		return -1;*/
-
-	MatDrawer drawer;
-	MatTransformer matTransformer;
 
 	/*while (true)
 	{
@@ -40,20 +40,12 @@ int main(int, char** argv)
 		Mat grayMat = matTransformer.ToGray(srcMat, true);
 		//imshow("gray", grayMat);
 
-		Mat edgesMat = matTransformer.ToEdges(grayMat);
-		//imshow("canny edge", edgesMat);
-
-		Mat linesMat = matTransformer.ToGray(matTransformer.ToHoughLinesP(edgesMat, 10, 1.0f, CV_PI / 180, 30, 20), true);
-
-		// Create empty color image for drawing
-		Mat drawingMat = Mat::zeros(srcMat.size(), CV_8UC3);
-
-		Mat dillMat = matTransformer.FillGaps(edgesMat);
-
-		//imshow("dillatated", dillMat);
+		Mat cannyEdgeMat = matTransformer.ToEdges(grayMat);
+		Mat dillMat = matTransformer.FillGaps(cannyEdgeMat);
+		//imshow("canny edge", cannyEdgeMat);
 
 		std::vector<ActivityElement*> activityElements;
-		ActivityFactory::CreateActivityElements(grayMat, drawingMat, dillMat, linesMat, activityElements);
+		ActivityFactory::CreateActivityElements(cannyEdgeMat, grayMat, dillMat, activityElements);
 
 		Mat finalMat = Mat::zeros(srcMat.size(), CV_8UC3);
 		for (auto &activityEle : activityElements)
@@ -72,14 +64,14 @@ int main(int, char** argv)
 				drawer.DrawLabelToContour(finalMat, activityEle->GetName(), activityEle->GetContour());
 		}
 
+		imshow("finalMat", finalMat);
+		waitKey();
+
 		for (auto activityEle : activityElements)
 		{
 			delete activityEle;
 		}
 
-		imshow("final", finalMat);
-
-	//}
 	waitKey();
 	return EXIT_SUCCESS;
 }
