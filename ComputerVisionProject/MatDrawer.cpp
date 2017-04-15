@@ -39,6 +39,6 @@ void MatDrawer::DrawLabelToContour(Mat& im, const std::string label, std::vector
 	cv::Rect r = cv::boundingRect(contour);
 
 	cv::Point pt(r.x + ((r.width - text.width) / 2), r.y + ((r.height + text.height) / 2));
-	cv::rectangle(im, pt + cv::Point(0, baseline), pt + cv::Point(text.width, -text.height), color, CV_FILLED);
-	cv::putText(im, label, pt, fontface, scale, CV_RGB(0, 0, 0), thickness, 8);
+	//cv::rectangle(im, pt + cv::Point(0, baseline), pt + cv::Point(text.width, -text.height), color, CV_FILLED);
+	cv::putText(im, label, pt, fontface, scale, Util::Colors::Blue, 2, LINE_8);
 }

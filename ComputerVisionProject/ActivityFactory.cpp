@@ -18,35 +18,39 @@ void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat 
 
 	// ACTION NODES
 	Contours actionContours;
-	activityRecognition.FindActionElements(cannyEdgeMat, drawingMat, actionContours);
+	std::vector<Rect> actionRectangles;
+	activityRecognition.FindActionElements(cannyEdgeMat, drawingMat, actionContours, actionRectangles);
 
 	for (int actionIndex = 0; actionIndex < actionContours.size(); actionIndex++)
 	{
-		activityElements.push_back(new ActionElement(actionIndex + 1, actionContours[actionIndex]));
+		activityElements.push_back(new ActionElement(actionIndex + 1, actionRectangles[actionIndex], actionContours[actionIndex]));
 	}
 
 	// DECISION NODES
 	Contours decisionContours;
-	activityRecognition.FindDecisionElements(cannyEdgeMat, drawingMat, decisionContours);
+	std::vector<RotatedRect> decisionRectangles;
+	activityRecognition.FindDecisionElements(cannyEdgeMat, drawingMat, decisionContours, decisionRectangles);
 
 	for (int decisionIndex = 0; decisionIndex < decisionContours.size(); decisionIndex++)
 	{
-		activityElements.push_back(new DecisionElement(decisionIndex + 1, decisionContours[decisionIndex]));
+		activityElements.push_back(new DecisionElement(decisionIndex + 1, decisionRectangles[decisionIndex], decisionContours[decisionIndex]));
 	}
 
 	// INITIAL NODE
 	Contour initialNodeContour;
-	activityRecognition.RenderInitialNode(dillMat, drawingMat, initialNodeContour);
+	Vec3i centreVec;
+	activityRecognition.FindInitialNode(dillMat, drawingMat, initialNodeContour, centreVec);
 
-	activityElements.push_back(new InitialNodelement(1, initialNodeContour));
+	activityElements.push_back(new InitialNodelement(1, centreVec, nullptr, initialNodeContour));
 
 	// FINAL NODES
 	Contours finalNodeContours;
-	activityRecognition.RenderFinalNodes(grayMat, drawingMat, finalNodeContours);
+	std::vector<Vec3i> circlesVec;
+	activityRecognition.FindFinalNodes(grayMat, drawingMat, finalNodeContours, circlesVec);
 
 	for (int finalNodeIndex = 0; finalNodeIndex < finalNodeContours.size(); finalNodeIndex++)
 	{
-		activityElements.push_back(new FinalNodeElement(finalNodeIndex + 1, finalNodeContours[finalNodeIndex]));
+		activityElements.push_back(new FinalNodeElement(finalNodeIndex + 1, circlesVec[finalNodeIndex], nullptr, finalNodeContours[finalNodeIndex]));
 	}
 
 	// LINE NODES

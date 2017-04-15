@@ -10,17 +10,13 @@ class ActivityRecognition
 {
 public:
 
-	void FindActionElements(const Mat cannyMat, Mat &dstMat, Contours& actionContours, double rectAreaDiffPct = 0.15);
-	void FindDecisionElements(const Mat cannyMat, Mat &dstMat, Contours& decisionContours, double rectAreaDiffPct = 0.15, int MaxAngleOffset = 10);
+	void FindInitialNode(const Mat dillinput, Mat dst, Contour& initialNodeContour, Vec3i& circleVec);
+	void FindFinalNodes(const Mat input, Mat dst, Contours& finalNodeContours, std::vector<Vec3i>& circlesVec);
+	void FindActionElements(const Mat cannyMat, Mat &dstMat, Contours& actionContours, std::vector<Rect>& actionRectangles, double rectAreaDiffPct = 0.15);
+	void FindDecisionElements(const Mat cannyMat, Mat &dstMat, Contours& decisionContours, std::vector<RotatedRect>& decisionRectangles, double rectAreaDiffPct = 0.15, int MaxAngleOffset = 10);
 	void FindConnectingLines(const Mat drawingMatWithoutLines, const Mat cannyMat, Mat &dstMat, Contours& lineContours);
 
-
-	void RenderActionAndDecisionElements(const Mat input, Mat dst, std::vector<std::vector<cv::Point>>& actionContours, std::vector<std::vector<cv::Point>>& decisionContours);
-	void RenderInitialNode(const Mat dillinput, Mat dst, std::vector<cv::Point>& initialNodeContour);
-	void RenderFinalNodes(const Mat input, Mat dst, std::vector<std::vector<cv::Point>>& finalNodeContours);
 	Mat RenderLineArrows(const Mat inputDrawingMat, const Mat inputDillatedMat);
-
-	Mat RenderConnectingLines(const Mat inputDrawingMat, const Mat inputDillatedMat, std::vector<std::vector<cv::Point>>& lineContours, Mat &arrowLinesMat);
 
 	ActivityRecognition() {}
 };

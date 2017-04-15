@@ -9,10 +9,17 @@ namespace activity
 	private:
 		std::vector<ActivityElement*> _inputElements;
 		ActivityElement* _outputElement;
+		Rect _rectangle;
 
 	public:
-		ActionElement(int id, Contour contour) : ActivityElement(ACTIVITY_TYPE_ID_ACTION, "ACTION", id, contour)
+		ActionElement(int id, Rect rectangle, Contour contour) : ActivityElement(ACTIVITY_TYPE_ID_ACTION, "A", id, contour)
 		{
+			_rectangle = rectangle;
+		}
+
+		void Draw(Mat &dstMat) override
+		{
+			rectangle(dstMat, _rectangle, Util::Colors::White, 2);
 		}
 
 		void AddInputAcitivityElement(ActivityElement* ouputEle)

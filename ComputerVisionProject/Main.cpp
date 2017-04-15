@@ -50,28 +50,49 @@ int main(int, char** argv)
 		Mat finalMat = Mat::zeros(srcMat.size(), CV_8UC3);
 		for (auto &activityEle : activityElements)
 		{
-			drawContours(finalMat, Contours{ activityEle->GetContour() }, 0, Util::Colors::Green, 2, 8);
-
 			if (activityEle->GetTypeId() == ACTIVITY_TYPE_ID_LINE)
-			{
-				const ActivityElement * fromEle = ((LineElement*)activityEle)->GetFromElement();
-				const ActivityElement * toEle = ((LineElement*)activityEle)->GetToElement();
-				string lineName = fromEle->GetName() + string(" , ") + toEle->GetName();
+				activityEle->Draw(finalMat);
 
-				drawer.DrawLabelToContour(finalMat, lineName, activityEle->GetContour());
-			}
-			else
-				drawer.DrawLabelToContour(finalMat, activityEle->GetName(), activityEle->GetContour());
+			//activityEle->DrawLabel(finalMat);
 		}
 
 		imshow("finalMat", finalMat);
-		waitKey();
 
+
+
+		/// Detector parameters
+		/*int blockSize = 15;
+		int apertureSize = 8;
+		double k = 0.1;
+
+		Mat dst, dst_norm, dst_norm_scaled;
+		dst = Mat::zeros(finalMat.size(), CV_32FC1);
+		/// Detecting corners
+		cornerHarris(matTransformer.ToGray(finalMat, true), dst, blockSize, apertureSize, k, BORDER_DEFAULT);
+
+		/// Normalizing
+		normalize(dst, dst_norm, 0, 255, NORM_MINMAX, CV_32FC1, Mat());
+		convertScaleAbs(dst_norm, dst_norm_scaled);
+
+		/// Drawing a circle around corners
+		for (int j = 0; j < dst_norm.rows; j++)
+		{
+			for (int i = 0; i < dst_norm.cols; i++)
+			{
+				if ((int)dst_norm.at<float>(j, i) > 160)
+				{
+					circle(finalMat, Point(i, j), 2, Util::Colors::Blue, CV_FILLED, 8, 0);
+				}
+			}
+		}
+
+		imshow("corners", finalMat);
+		*/
 		for (auto activityEle : activityElements)
 		{
 			delete activityEle;
 		}
-
+//	}
 	waitKey();
 	return EXIT_SUCCESS;
 }

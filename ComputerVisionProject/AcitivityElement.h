@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "OpenCVHeaders.h"
+#include "MatDrawer.h"
 
 using namespace std;
 using namespace cv;
@@ -24,18 +25,26 @@ namespace activity
 		TypeId _typeId;
 		string _name;
 		Contour _contour;
+		MatDrawer _md;
 
 	public:
 		ActivityElement(TypeId typeId, string name, int id, Contour contour)
 		{
+			_contour = contour;
 			_typeId = typeId;
 			_name = name + " " + to_string(id);
-			_contour = contour;
 		}
 
+		virtual void Draw(Mat &dstMat) = 0;
+
+		void DrawLabel(Mat &dstMat)
+		{
+			_md.DrawLabelToContour(dstMat, _name, _contour);
+		}
+
+		Contour GetContour() { return _contour; }
 		TypeId GetTypeId() const { return _typeId; }
 		string GetName() const { return _name; }
-		Contour GetContour() const { return _contour; }
 	};
 }
 
