@@ -26,13 +26,15 @@ namespace activity
 		string _name;
 		Contour _contour;
 		MatDrawer _md;
+		int _id;
 
 	public:
 		ActivityElement(TypeId typeId, string name, int id, Contour contour)
 		{
 			_contour = contour;
 			_typeId = typeId;
-			_name = name + " " + to_string(id);
+			_id = id;
+			_name = name + " " + to_string(_id);
 		}
 
 		virtual void Draw(Mat &dstMat) = 0;
@@ -42,6 +44,7 @@ namespace activity
 			_md.DrawLabelToContour(dstMat, _name, _contour);
 		}
 
+		int GetId() const { return _id; }
 		Contour GetContour() { return _contour; }
 		TypeId GetTypeId() const { return _typeId; }
 		string GetName() const { return _name; }

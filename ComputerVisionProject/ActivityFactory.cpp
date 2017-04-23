@@ -11,6 +11,8 @@ using namespace std;
 using namespace cv;
 using namespace activity;
 
+
+
 void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat dillMat, vector<ActivityElement*>& activityElements)
 {
 	ActivityRecognition activityRecognition;
@@ -41,7 +43,8 @@ void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat 
 	Vec3i centreVec;
 	activityRecognition.FindInitialNode(dillMat, drawingMat, initialNodeContour, centreVec);
 
-	activityElements.push_back(new InitialNodelement(1, centreVec, nullptr, initialNodeContour));
+	if (initialNodeContour.size() != 0)
+		activityElements.push_back(new InitialNodelement(1, centreVec, nullptr, initialNodeContour));
 
 	// FINAL NODES
 	Contours finalNodeContours;
@@ -62,22 +65,131 @@ void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat 
 	for (int lineIndex = 0; lineIndex < lineContours.size(); lineIndex++)
 	{
 		Contour lineContour = lineContours[lineIndex];
-		LineElement * line = new LineElement(lineIndex + 1, lineContour, nullptr, nullptr);
 
-		double minValueStart;
-		double minValueEnd;
+		Mat lineTempMat = Mat::zeros(cannyEdgeMat.size(), CV_8UC1);
+		drawContours(lineTempMat, Contours{ lineContour }, 0, Util::Colors::White, CV_FILLED, LINE_8);
 
-		auto connectingEle1 = FindConnectingElement(activityElements, line, LINE_POINT_START, minValueStart);
-		auto connectingEle2 = FindConnectingElement(activityElements, line, LINE_POINT_END, minValueEnd);
+		ClosestInfo startingInfo;
+		ClosestInfo endingInfo;
 
-		line->SetFromElement(connectingEle1);
-		line->SetToElement(connectingEle2);
+		FindConnectingElements(activityElements, lineContour, startingInfo, endingInfo, lineTempMat, lineIndex + 1);
 
-		lineInfoDistances.insert(make_tuple(std::max(minValueStart, minValueEnd), line));
+		if (startingInfo.ele == nullptr || endingInfo.ele == nullptr)
+			continue;
+
+		Point startingPoint = startingInfo.closestLinePoint;
+		Point endingPoint = endingInfo.closestLinePoint;
+
+		double linePartLength = arcLength(lineContour, false) * 0.1;
+		double startCircleRadius = arcLength(lineContour, false) * 0.12;
+		double endCircleRadius = arcLength(lineContour, false) * 0.12;
+
+		startCircleRadius = startCircleRadius > linePartLength ? linePartLength : startCircleRadius;
+		endCircleRadius = endCircleRadius > linePartLength ? linePartLength : endCircleRadius;
+
+		std::vector<Point> cornerPoints;
+		Mat cornerMat = Util::Image::FindCornerPoints(lineTempMat, cornerPoints);
+
+		std::vector<Point> centroidsPoints;
+		double circleRadius = 8.0;
+		Util::Image::FindCentroidsForContours(cornerMat, centroidsPoints, (int)circleRadius);
+
+		auto filteredCornerPoints = boolinq::from(centroidsPoints).where([startingPoint, startCircleRadius, endingPoint, endCircleRadius, circleRadius](Point centroidP)
+		{
+			if (norm(centroidP - startingPoint) < circleRadius)
+				return false;
+
+			if (norm(centroidP - endingPoint) < circleRadius)
+				return false;
+
+			return true;
+		}).toVector();
+
+
+		std::vector<cv::Point> linePoints;
+
+		// Draw direct line
+		if (filteredCornerPoints.empty())
+		{
+			linePoints.push_back(startingPoint);
+			linePoints.push_back(endingPoint);
+		}
+		// Draw line with corners
+		else
+		{
+			linePoints.push_back(startingPoint);
+
+			if (lineIndex == 21)
+			{
+				filteredCornerPoints.front();
+			}
+
+			filteredCornerPoints.insert(filteredCornerPoints.begin(), startingPoint);
+			filteredCornerPoints.push_back(endingPoint);
+
+			std::set<int> visitedSet;
+
+			//line(dstMat, startPoint, endPoint, Util::Colors::Green, 2, LINE_AA);
+
+			visitedSet.insert(0);
+			visitedSet.insert((int)filteredCornerPoints.size() - 1);
+
+			int searchIndex = 0;
+			Point searchPoint = filteredCornerPoints[searchIndex];
+
+			while (visitedSet.size() != filteredCornerPoints.size())
+				//for (int i = 0; i < filteredCornerPoints.size(); i++)
+			{
+				/*if (i == filteredCornerPoints.size() - 1)
+					break;*/
+
+					//line(dstMat, filteredCornerPoints[i], filteredCornerPoints[i +1], Util::Colors::White, 2, LINE_AA);
+
+				Point currentPoint = searchPoint; /*filteredCornerPoints[i];*/
+				Point closestPoint(cannyEdgeMat.cols + 1, cannyEdgeMat.rows + 1);
+				int closestIndex = -1;
+
+				for (int j = 0; j < filteredCornerPoints.size(); j++)
+				{
+					if (searchIndex == j)
+						continue;
+
+					bool foundCloser = norm(currentPoint - filteredCornerPoints[j]) <= norm(currentPoint - closestPoint);
+
+					if (foundCloser && visitedSet.count(j) == 0)
+					{
+						closestIndex = j;
+						closestPoint = filteredCornerPoints[j];
+					}
+				}
+
+				linePoints.push_back(closestPoint);
+				searchPoint = closestPoint;
+				searchIndex = closestIndex;
+
+				visitedSet.insert(closestIndex);
+			}
+
+			linePoints.push_back(endingPoint);
+
+			//line(dstMat, closestPoint, endPoint, Util::Colors::White, 2, LINE_AA);
+		}
+
+		if (startingInfo.ele != nullptr && endingInfo.ele != nullptr)
+		{
+			LineElement * line = new LineElement(lineIndex + 1, lineContour, linePoints, nullptr, nullptr);
+
+			line->SetFromElement(startingInfo.ele);
+			line->SetToElement(endingInfo.ele);
+
+			//activityElements.push_back(line);
+
+			lineInfoDistances.insert(make_tuple(startingInfo.distance + endingInfo.distance, line));
+		}
 	}
 
 	std::vector<std::tuple<double, LineElement*>> resultVec(lineInfoDistances.begin(), lineInfoDistances.end());
-	double thresholdPct = 3.0;
+	double thresholdPct = 4.0;
 	int ignoreFromIndex = -1;
 
 	auto filteredLines = boolinq::from(resultVec).where_i([resultVec, thresholdPct, &ignoreFromIndex](std::tuple<double, LineElement*> currentTuple, int i)
@@ -104,45 +216,71 @@ void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat 
 		return lineEle;
 	}).toVector();
 
+
 	//imshow("drawing", drawingMat);
 	//waitKey();
 }
 
 
-ActivityElement* ActivityFactory::FindConnectingElement(std::vector<ActivityElement*>& activityElements, LineElement * line, LinePoint lineTypePoint, double &minDistance)
+void ActivityFactory::FindConnectingElements(std::vector<activity::ActivityElement*>& activityElements, std::vector<cv::Point> lineContour,
+	ClosestInfo &from, ClosestInfo &to, Mat lineMat, int lineIndex)
 {
-	if (activityElements.empty())
-		return nullptr;
+	std::vector<ClosestInfo> closestInfos;
 
-	Contour approxLineContour;
-
-	double arcLengthCoef = cv::arcLength(line->GetContour(), true) * 0.2;
-	cv::approxPolyDP(line->GetContour(), approxLineContour, arcLengthCoef, true);
-
-	Point linePoint = lineTypePoint == LINE_POINT_START ? approxLineContour.front() : approxLineContour.back();
-
-	size_t minDistanceIndex;
-	minDistance = std::numeric_limits<double>::max();
-
-	std::vector<double> distances;
-
-	for (int i = 0; i < activityElements.size(); i++)
+	for (auto &linePoint : lineContour)
 	{
-		auto activityEle = activityElements[i];
-
-		if (activityEle->GetTypeId() == ACTIVITY_TYPE_ID_LINE)
-			continue;
-
-		double currentDist = std::abs(pointPolygonTest(activityEle->GetContour(), linePoint, true));
-
-		distances.push_back(currentDist);
-
-		if (currentDist < minDistance)
+		for (auto &activityEle : activityElements)
 		{
-			minDistance = currentDist;
-			minDistanceIndex = i;
+			if (activityEle->GetTypeId() == ACTIVITY_TYPE_ID_LINE)
+				continue;
+
+			double dist = std::abs(pointPolygonTest(activityEle->GetContour(), linePoint, true));
+			closestInfos.push_back(ClosestInfo(activityEle, linePoint, dist));
 		}
 	}
 
-	return activityElements[minDistanceIndex];
+	std::sort(begin(closestInfos), end(closestInfos), [](ClosestInfo const &t1, ClosestInfo const &t2) {
+		return t1.distance < t2.distance;
+	});
+
+	if (closestInfos.empty())
+		return;
+
+	ClosestInfo first = closestInfos[0];
+	ClosestInfo second;
+
+	for (auto &closestInfo : closestInfos)
+	{
+		if (closestInfo.ele->GetName() != first.ele->GetName())
+		{
+			second = closestInfo;
+			break;
+		}
+	}
+
+	if (second.ele == nullptr)
+		return;
+
+	Mat firstMask = Mat::zeros(lineMat.size(), CV_8UC1);
+	circle(firstMask, first.closestLinePoint, 10, Util::Colors::White, CV_FILLED);
+
+	Mat firstAndMask;
+	bitwise_and(firstMask, lineMat, firstAndMask);
+
+	Mat secondMask = Mat::zeros(lineMat.size(), CV_8UC1);
+	circle(secondMask, second.closestLinePoint, 10, Util::Colors::White, CV_FILLED);
+
+	Mat secondAndMask;
+	bitwise_and(secondMask, lineMat, secondAndMask);
+
+	if (countNonZero(firstAndMask) < countNonZero(secondAndMask))
+	{
+		from = first;
+		to = second;
+	}
+	else
+	{
+		to = first;
+		from = second;
+	}
 }

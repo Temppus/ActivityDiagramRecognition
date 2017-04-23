@@ -7,7 +7,7 @@
 
 void ActivityRecognition::FindActionElements(const Mat cannyMat, Mat &dstMat, Contours& actionContours, std::vector<Rect>& actionRectangles, double rectAreaDiffPct)
 {
-	MatDrawer md;
+	//MatDrawer md;
 	MatTransformer matTransformer;
 	Mat dillEdgeMat = matTransformer.FillGaps(cannyMat);
 
@@ -45,7 +45,7 @@ void ActivityRecognition::FindActionElements(const Mat cannyMat, Mat &dstMat, Co
 
 void ActivityRecognition::FindDecisionElements(const Mat cannyMat, Mat &dstMat, Contours& decisionContours, std::vector<RotatedRect>& decisionRectangles, double rectAreaDiffPct, int MaxAngleOffset)
 {
-	MatDrawer md;
+	//MatDrawer md;
 	MatTransformer matTransformer;
 	Mat dillEdgeMat = matTransformer.FillGaps(cannyMat);
 
@@ -106,15 +106,11 @@ void ActivityRecognition::FindFinalNodes(const Mat input, Mat dst, Contours& fin
 	{
 		Vec3i c = circles[i];
 
-		circle(dst, Point(c[0], c[1]), c[2], Util::Colors::Green, 3, LINE_AA);
-		circle(dst, Point(c[0], c[1]), 2, Util::Colors::Green, 3, LINE_AA);
-
+		circle(dst, Point(c[0], c[1]), c[2], Util::Colors::White, 3, LINE_AA);
 		circlesVec.push_back(c);
 
 		// draw to contour mat
 		circle(emptyMat, Point(c[0], c[1]), c[2], Util::Colors::White, 3, LINE_AA);
-
-		cv::putText(dst, "Final node", Point(c[0], c[1]), cv::FONT_HERSHEY_SIMPLEX, 0.4, Util::Colors::White, 2, 8);
 	}
 
 	// Extract contours of circles
@@ -129,7 +125,7 @@ void ActivityRecognition::FindFinalNodes(const Mat input, Mat dst, Contours& fin
 	}
 }
 
-void ActivityRecognition::FindInitialNode(const Mat dillinput, Mat dst, Contour& initialNodeContour, Vec3i& circleVec)
+void ActivityRecognition::FindInitialNode(const Mat dillinput, Mat dst, Contour& initialNodeContour, Vec3i& circleVec, double circleAreaDiffPct)
 {
 	// Contour structures
 	vector<vector<cv::Point>> contours;
@@ -138,35 +134,27 @@ void ActivityRecognition::FindInitialNode(const Mat dillinput, Mat dst, Contour&
 
 	cv::findContours(dillinput.clone(), contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE);
 
-	size_t maxCirclePoints = 0;
-	int maxPointsIndex = -1;
-
 	for (int i = 0; i < contours.size(); i++)
 	{
-		double lengthCoef = 0.03;
-		double arcLength = cv::arcLength(cv::Mat(contours[i]), true) * lengthCoef;
+		if (hierarchy[i][HIERARCHY_FIRT_CHILD] != HIERARCHY_VALUE_NONE)
+			continue;
 
-		// Approximate contour with accuracy proportional to the contour perimeter
-		cv::approxPolyDP(cv::Mat(contours[i]), approxPolyPoints, arcLength, true);
+		Point2f centrePoint;
+		float radius;
+		minEnclosingCircle(contours[i], centrePoint, radius);
 
-		if (approxPolyPoints.size() > 6)
+		double rawArea = cv::contourArea(contours[i]);
+		double circleArea = CV_PI * radius * radius;
+		double areasMaxDiff = circleArea * circleAreaDiffPct;
+
+		double areasDiff = std::abs(rawArea - circleArea);
+
+		if (areasDiff <= areasMaxDiff)
 		{
-			if (approxPolyPoints.size() > maxCirclePoints)
-			{
-				maxCirclePoints = approxPolyPoints.size();
-				maxPointsIndex = i;
-			}
+			initialNodeContour = contours[i];
+			circleVec = Vec3i((int)centrePoint.x, (int)centrePoint.y, (int)radius);
+			break;
 		}
-	}
-
-	if (maxPointsIndex >= 0)
-	{
-		cv::Rect r = cv::boundingRect(contours[maxPointsIndex]);
-		cv::Point pt(r.x + ((r.width) / 2), r.y + ((r.height) / 2));
-
-		circleVec = Vec3i(pt.x, pt.y, 10);
-		circle(dst, pt, 10, Util::Colors::Green, 2);
-		initialNodeContour = contours[maxPointsIndex];
 	}
 }
 
@@ -220,7 +208,6 @@ void ActivityRecognition::FindConnectingLines(const Mat drawingMatWithoutLines, 
 	Mat connectingLinesMat = Mat::zeros(drawingMatWithoutLines.size(), CV_8UC1);
 	Contours contours;
 	Hierarchy hierarchy;
-	std::vector<cv::Point> approxPolyPoints;
 
 	cv::findContours(mt.ToGray(linesImage, true), contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE);
 

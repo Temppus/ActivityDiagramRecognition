@@ -21,7 +21,8 @@ namespace activity
 
 		void Draw(Mat &dstMat) override
 		{
-			circle(dstMat, Point(_centerVec[0], _centerVec[1]), _centerVec[2], Util::Colors::White, 2, LINE_AA);
+			drawContours(dstMat, Contours{ _contour }, 0, Util::Colors::Green, 2, LINE_AA);
+			//circle(dstMat, Point(_centerVec[0], _centerVec[1]), _centerVec[2], Util::Colors::White, 2, LINE_AA);
 		}
 
 		void SetNextActivityElement(ActivityElement* nextActivityEle)

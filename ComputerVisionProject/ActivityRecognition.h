@@ -10,7 +10,7 @@ class ActivityRecognition
 {
 public:
 
-	void FindInitialNode(const Mat dillinput, Mat dst, Contour& initialNodeContour, Vec3i& circleVec);
+	void FindInitialNode(const Mat dillinput, Mat dst, Contour& initialNodeContour, Vec3i& circleVec, double circleAreaDiffPct = 0.1);
 	void FindFinalNodes(const Mat input, Mat dst, Contours& finalNodeContours, std::vector<Vec3i>& circlesVec);
 	void FindActionElements(const Mat cannyMat, Mat &dstMat, Contours& actionContours, std::vector<Rect>& actionRectangles, double rectAreaDiffPct = 0.15);
 	void FindDecisionElements(const Mat cannyMat, Mat &dstMat, Contours& decisionContours, std::vector<RotatedRect>& decisionRectangles, double rectAreaDiffPct = 0.15, int MaxAngleOffset = 10);
