@@ -95,7 +95,7 @@ namespace Util
 			}
 		}
 
-		static void DrawArrowLine(Mat &dstMat, Point pt1, Point pt2, const Scalar& color, int thickness, int line_type, double tipSize)
+		static void DrawArrowedLine(Mat &dstMat, Point pt1, Point pt2, const Scalar& color, int thickness, int line_type, double tipSize)
 		{
 			line(dstMat, pt1, pt2, color, thickness, line_type);
 

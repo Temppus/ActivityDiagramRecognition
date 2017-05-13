@@ -166,7 +166,6 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MatDrawer.cpp" />
     <ClCompile Include="MatTransformer.cpp" />
-    <ClCompile Include="Test.cpp" />
     <ClCompile Include="Util.cpp" />
     <ClCompile Include="ActivityRecognition.cpp" />
   </ItemGroup>

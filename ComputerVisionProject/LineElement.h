@@ -41,14 +41,12 @@ namespace activity
 
 				if (i == _linePoints.size() -2)
 				{
-					Util::Image::DrawArrowLine(dstMat, _linePoints[i], _linePoints[i + 1], Util::Colors::White, 2, LINE_AA, 15.0);
-					//arrowedLine(dstMat, _linePoints[i], _linePoints[i + 1], Util::Colors::White, 2, LINE_AA, 0, );
+					Util::Image::DrawArrowedLine(dstMat, _linePoints[i], _linePoints[i + 1], Util::Colors::White, 2, LINE_AA, 15.0);
 				}
 				else
 				{
 					line(dstMat, _linePoints[i], _linePoints[i + 1], Util::Colors::White, 2, LINE_AA);
 				}
-
 			}
 		}
 

@@ -33,6 +33,8 @@ void ActivityRecognition::FindActionElements(const Mat cannyMat, Mat &dstMat, Co
 
 		if (areasDiff <= areasMaxDiff)
 		{
+			//rectangle(dstMat, boundingRect, Util::Colors::Green, 4);
+
 			actionRectangles.push_back(boundingRect);
 			actionContours.push_back(contours[i]);
 			drawContours(dstMat, contours, i, Util::Colors::White, 2);
@@ -41,6 +43,7 @@ void ActivityRecognition::FindActionElements(const Mat cannyMat, Mat &dstMat, Co
 	}
 
 	//imshow("actions", dstMat);
+	//waitKey();
 }
 
 void ActivityRecognition::FindDecisionElements(const Mat cannyMat, Mat &dstMat, Contours& decisionContours, std::vector<RotatedRect>& decisionRectangles, double rectAreaDiffPct, int MaxAngleOffset)
@@ -58,6 +61,8 @@ void ActivityRecognition::FindDecisionElements(const Mat cannyMat, Mat &dstMat, 
 
 	if (dstMat.rows == 0 && dstMat.cols == 0)
 		dstMat = Mat::zeros(dillEdgeMat.size(), CV_8UC3);
+
+	Mat decisionMat = Mat::zeros(cannyMat.size(), CV_8UC3);
 
 	for (int i = 0; i < contours.size(); i++)
 	{
@@ -81,13 +86,21 @@ void ActivityRecognition::FindDecisionElements(const Mat cannyMat, Mat &dstMat, 
 			// Decision element
 			decisionRectangles.push_back(rotatedRect);
 			decisionContours.push_back(contours[i]);
-
 			drawContours(dstMat, contours, i, Util::Colors::White, 2);
+
+			/*Point2f pts[4];
+			rotatedRect.points(pts);
+			Contour rectContour{ pts[0], pts[1], pts[2], pts[3] };
+
+			drawContours(decisionMat, contours, i, Util::Colors::White, 2);
+			drawContours(decisionMat, Contours{ rectContour }, 0, Util::Colors::Green, 2);
 			//md.DrawLabelToContour(dstMat, "DECISION", contours[i]);
+			*/
 		}
 	}
 
-	//imshow("decisions", dstMat);
+	//imshow("decisions", decisionMat);
+	//waitKey();
 }
 
 void ActivityRecognition::FindFinalNodes(const Mat input, Mat dst, Contours& finalNodeContours, std::vector<Vec3i>& circlesVec)
@@ -182,10 +195,12 @@ void ActivityRecognition::FindConnectingLines(const Mat drawingMatWithoutLines, 
 	Mat finalMat;
 	bitwise_and(andNot, dillMat, finalMat);
 
-	//imshow("AND NOT", finalMat);
 
 	erode(finalMat, finalMat, getStructuringElement(MORPH_RECT, Size(5, 1)));
 	erode(finalMat, finalMat, getStructuringElement(MORPH_RECT, Size(1, 5)));
+
+	//imshow("AND NOT", finalMat);
+	//waitKey();
 
 	// Extract lines
 	std::vector<Vec4i> linesVec;

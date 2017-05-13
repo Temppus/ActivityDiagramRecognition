@@ -129,8 +129,6 @@ void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat 
 
 			std::set<int> visitedSet;
 
-			//line(dstMat, startPoint, endPoint, Util::Colors::Green, 2, LINE_AA);
-
 			visitedSet.insert(0);
 			visitedSet.insert((int)filteredCornerPoints.size() - 1);
 
@@ -138,14 +136,8 @@ void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat 
 			Point searchPoint = filteredCornerPoints[searchIndex];
 
 			while (visitedSet.size() != filteredCornerPoints.size())
-				//for (int i = 0; i < filteredCornerPoints.size(); i++)
 			{
-				/*if (i == filteredCornerPoints.size() - 1)
-					break;*/
-
-					//line(dstMat, filteredCornerPoints[i], filteredCornerPoints[i +1], Util::Colors::White, 2, LINE_AA);
-
-				Point currentPoint = searchPoint; /*filteredCornerPoints[i];*/
+				Point currentPoint = searchPoint;
 				Point closestPoint(cannyEdgeMat.cols + 1, cannyEdgeMat.rows + 1);
 				int closestIndex = -1;
 
@@ -172,7 +164,6 @@ void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat 
 
 			linePoints.push_back(endingPoint);
 
-			//line(dstMat, closestPoint, endPoint, Util::Colors::White, 2, LINE_AA);
 		}
 
 		if (startingInfo.ele != nullptr && endingInfo.ele != nullptr)
@@ -182,12 +173,11 @@ void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat 
 			line->SetFromElement(startingInfo.ele);
 			line->SetToElement(endingInfo.ele);
 
-			//activityElements.push_back(line);
-
 			lineInfoDistances.insert(make_tuple(startingInfo.distance + endingInfo.distance, line));
 		}
 	}
 
+	// Filter out lines which connected activity elements are too far away
 	std::vector<std::tuple<double, LineElement*>> resultVec(lineInfoDistances.begin(), lineInfoDistances.end());
 	double thresholdPct = 4.0;
 	int ignoreFromIndex = -1;
@@ -215,10 +205,6 @@ void ActivityFactory::CreateActivityElements(Mat cannyEdgeMat, Mat grayMat, Mat 
 		activityElements.push_back(lineEle);
 		return lineEle;
 	}).toVector();
-
-
-	//imshow("drawing", drawingMat);
-	//waitKey();
 }
 
 
